@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<base href="/Epreem/">
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#0E0D0B" />
 <link rel="apple-touch-icon" href="logo.jpg" />
@@ -92,7 +93,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     EpreemUI.renderCards('approvedGrid', products);
     count.textContent = products.length ? `${response.total || products.length} approved listing${(response.total || products.length) === 1 ? '' : 's'}` : 'New listings are being reviewed';
     if (!products.length) {
-      grid.innerHTML = '<div class="empty-state empty-marketplace"><span>◇</span><h3>New listings are on their way</h3><p>Products appear here after a seller is approved and their listing passes review.</p><a class="btn btn-line btn-sm" href="register.html">Apply to sell</a></div>';
+      grid.innerHTML = '<div class="empty-state empty-marketplace"><span>◇</span><h3>New listings are on their way</h3><p>Products appear here after a seller is approved and their listing passes review.</p></div>';
     }
   } catch (error) {
     count.textContent = 'Marketplace unavailable';
@@ -140,7 +141,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     slides.forEach((slide, slideIndex) => slide.classList.toggle('active', slideIndex === current));
     [...dots.children].forEach((dot, dotIndex) => dot.classList.toggle('active', dotIndex === current));
   };
-  slides.forEach((_, index) => { const dot = document.createElement('button'); dot.type = 'button'; dot.setAttribute('aria-label', `Show banner ${index + 1}`); dot.addEventListener('click', () => showSlide(index)); dots.append(dot); });
+  slides.forEach((_, index) => { const dot = document.createElement('button'); dot.type = 'button'; dot.setAttribute('aria-label', `Show banner ${index + 1}`); dot.addEventListener('click', () => showSlide(index)); dots.appendChild(dot); });
   document.querySelector('[data-slide="prev"]').addEventListener('click', () => showSlide(current - 1));
   document.querySelector('[data-slide="next"]').addEventListener('click', () => showSlide(current + 1));
   showSlide(0);
