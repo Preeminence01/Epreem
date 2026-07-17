@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<base href="/Epreem/">
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#0E0D0B" />
 <link rel="apple-touch-icon" href="icons/icon-180.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Browse Listings — EPREEM</title>
-<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
@@ -110,7 +111,7 @@ document.addEventListener('epreem:layout-ready', async (e) => {
     if(cat){ document.getElementById('pageHeading').textContent = cat.name; document.getElementById('bcrumb').textContent = 'Marketplace / ' + cat.name; }
   }
   if(q){
-    document.getElementById('pageHeading').textContent = 'Results for “' + q + '”';
+    document.getElementById('pageHeading').textContent = 'Results for "' + q + '"';
   }
 
   let debounceTimer;
