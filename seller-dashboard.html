@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0E0D0B" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Seller Dashboard — EPREEM</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main>
+  <div class="dash-shell">
+    <aside class="dash-side">
+      <div class="logo">
+        <img class="dashboard-logo-image" src="logo.jpg" alt="EPREEM" />
+        <span class="tag">Seller Studio</span>
+      </div>
+      <nav class="dash-nav">
+        <a href="#" class="active" data-pane="overview">Home</a>
+        <a href="#" data-pane="products">My products</a>
+        <a href="#" data-pane="orders">My sales</a>
+        <a href="messages.html">Messages</a>
+        <div class="grp-label">Account</div>
+        <a href="profile.html">My Profile</a>
+        <a href="index.php">Exit to Marketplace</a>
+      </nav>
+    </aside>
+
+    <div class="dash-main">
+
+      <div id="pane-overview" class="dash-pane">
+        <div class="dash-head">
+          <div><span class="eyebrow">Your seller account</span><h1>What would you like to do?</h1></div>
+          <button class="btn btn-gold" onclick="document.getElementById('newProductModal').classList.add('open')">+ Add a product</button>
+        </div>
+        <div class="seller-start-panel">
+          <div><b>1. Add your product</b><span>Enter its name, photo and price.</span></div>
+          <div><b>2. We review it</b><span>Your product appears after approval.</span></div>
+          <div><b>3. Receive orders</b><span>See new customer orders in My sales.</span></div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="lbl">Total Revenue</div><div class="val">$284,600</div><div class="delta">↑ 12.4% this month</div></div>
+          <div class="stat-card"><div class="lbl">Active Listings</div><div class="val">18</div><div class="delta">3 pending review</div></div>
+          <div class="stat-card"><div class="lbl">Orders this Month</div><div class="val">26</div><div class="delta">↑ 4 vs last month</div></div>
+          <div class="stat-card"><div class="lbl">Avg. Rating</div><div class="val">4.9</div><div class="delta">From 142 reviews</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Recent Orders</h3><a href="#" class="view-all" data-pane-trigger="orders">View all →</a></div>
+          <table class="dtable">
+            <thead><tr><th>Order</th><th>Item</th><th>Buyer</th><th>Amount</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>#EP-3391</td><td>Edwardian Diamond Halo Ring</td><td>Ama O.</td><td>$18,500</td><td><span class="status-pill ok">Paid</span></td></tr>
+              <tr><td>#EP-3388</td><td>Art Deco Sapphire Brooch</td><td>Kojo M.</td><td>$9,650</td><td><span class="status-pill pending">Pending</span></td></tr>
+              <tr><td>#EP-3380</td><td>Sub-Zero Refrigeration Suite</td><td>Linda T.</td><td>$8,400</td><td><span class="status-pill ok">Shipped</span></td></tr>
+              <tr><td>#EP-3375</td><td>Penthouse — Cantonments</td><td>Yaw B.</td><td>$890,000</td><td><span class="status-pill bad">Disputed</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="pane-products" class="dash-pane" style="display:none;">
+        <div class="dash-head">
+          <div><span class="eyebrow">Inventory</span><h1>Products</h1></div>
+          <button class="btn btn-gold" onclick="document.getElementById('newProductModal').classList.add('open')">+ Add a product</button>
+        </div>
+        <div class="panel">
+          <table class="dtable" id="productsTable">
+            <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Status</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="pane-orders" class="dash-pane" style="display:none;">
+        <div class="dash-head"><div><span class="eyebrow">Fulfillment</span><h1>Orders</h1></div></div>
+        <div class="panel">
+          <table class="dtable">
+            <thead><tr><th>Order</th><th>Item</th><th>Buyer</th><th>Amount</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>#EP-3391</td><td>Edwardian Diamond Halo Ring</td><td>Ama O.</td><td>$18,500</td><td><span class="status-pill ok">Paid</span></td></tr>
+              <tr><td>#EP-3388</td><td>Art Deco Sapphire Brooch</td><td>Kojo M.</td><td>$9,650</td><td><span class="status-pill pending">Pending</span></td></tr>
+              <tr><td>#EP-3380</td><td>Sub-Zero Refrigeration Suite</td><td>Linda T.</td><td>$8,400</td><td><span class="status-pill ok">Shipped</span></td></tr>
+              <tr><td>#EP-3375</td><td>Penthouse — Cantonments</td><td>Yaw B.</td><td>$890,000</td><td><span class="status-pill bad">Disputed</span></td></tr>
+              <tr><td>#EP-3370</td><td>CNC 5-Axis Machining Center</td><td>Forge Co.</td><td>$142,500</td><td><span class="status-pill ok">Paid</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="pane-auctions" class="dash-pane" style="display:none;">
+        <div class="dash-head"><div><span class="eyebrow">Manage</span><h1>Your Auctions</h1></div><button class="btn btn-gold">+ Start Auction</button></div>
+        <div class="grid-cards cols-3" id="sellerAuctionGrid"></div>
+      </div>
+
+      <div id="pane-verification" class="dash-pane" style="display:none;">
+        <div class="dash-head"><div><span class="eyebrow">Trust</span><h1>Verification Status</h1></div></div>
+        <div class="panel" style="padding:24px;">
+          <div style="display:flex; align-items:center; gap:14px; margin-bottom:18px;">
+            <span class="verified-pill" style="font-size:12px; padding:5px 12px;">✓ Identity Verified</span>
+            <span class="status-pill pending">Business Verification Pending</span>
+          </div>
+          <p style="color:var(--ink-dim); font-size:13px; margin-bottom:20px; max-width:520px;">Upload your business registration documents to unlock multiple staff accounts, bulk uploads and company branding.</p>
+          <div class="upload-box">
+            <span style="font-size:26px;">⤴</span>
+            <b>Drag & drop documents here</b>
+            <span style="font-size:12px;">PDF, JPG or PNG — max 10MB</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="newProductModal">
+  <div class="modal-box" style="max-width:480px;">
+    <span class="close" onclick="document.getElementById('newProductModal').classList.remove('open')">×</span>
+    <h3 id="productModalTitle">Add a product</h3>
+    <p style="color:var(--ink-dim); font-size:13px; margin-bottom:20px;">Add core details now — you can attach images and finish the listing afterward.</p>
+    <form onsubmit="event.preventDefault(); toast('Product submitted for review'); document.getElementById('newProductModal').classList.remove('open');">
+      <input type="hidden" name="product_id" />
+      <div class="field"><label>Product title</label><input name="title" type="text" required placeholder="e.g. Vintage Cartier Tank Watch" /></div>
+      <div class="field-row">
+        <div class="field"><label>Category</label>
+          <select name="category_id" required id="productCategorySelect">
+            <option value="">Select category</option>
+          </select>
+        </div>
+        <div class="field"><label>Price</label><input name="price" type="number" min="0" step="0.01" required placeholder="0.00" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Currency</label><select name="currency"><option value="USD">US Dollar (USD)</option><option value="NGN">Nigerian Naira (NGN)</option></select></div>
+        <div class="field"><label>Product picture</label><input name="image" type="file" accept="image/jpeg,image/png,image/webp" /></div>
+      </div>
+      <div class="field"><label>How do you want to sell it?</label>
+        <select name="sale_channel" id="productSaleChannel">
+          <option value="retail">Retail</option>
+          <option value="wholesale">Wholesale</option>
+          <option value="both">Wholesale and retail</option>
+        </select>
+      </div>
+      <div class="field"><label>Description</label><textarea name="description" rows="3" placeholder="Condition, provenance, key details..."></textarea></div>
+      <button type="submit" class="btn btn-gold btn-block">Submit for Review</button>
+    </form>
+  </div>
+</div>
+
+<div id="site-footer"></div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const user = Auth.getUser();
+  if(!user || !['seller', 'admin', 'super_admin'].includes(user.role)){
+    toast('Sign in as a seller to view this page');
+    setTimeout(() => location.href = 'login.html', 800);
+    return;
+  }
+  if(user.role === 'seller' && user.verification_status !== 'verified'){
+    toast('Seller access is pending admin approval');
+    setTimeout(() => location.href = 'profile.html', 800);
+    return;
+  }
+
+  let categoryOptions = [];
+  let sellerProducts = [];
+  async function loadProductCategories(){
+    try{
+      categoryOptions = await EpreemAPI.categories.list();
+      const select = document.getElementById('productCategorySelect');
+      select.innerHTML = '<option value="">Select category</option>' + categoryOptions.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    }catch(err){
+      toast('Could not load product categories');
+    }
+  }
+
+  async function loadOverview(){
+    try{
+      const stats = await EpreemAPI.seller.stats();
+      const statVals = document.querySelectorAll('#pane-overview .stat-card .val');
+      statVals[0].textContent = EpreemUI.money(stats.total_revenue);
+      statVals[1].textContent = stats.active_listings;
+      statVals[2].textContent = stats.orders_this_month;
+      statVals[3].textContent = stats.avg_rating || '—';
+      document.querySelectorAll('#pane-overview .stat-card .delta')[1].textContent = stats.pending_listings + ' pending review';
+    }catch(err){ /* leave placeholder values */ }
+
+    try{
+      const orderItems = await EpreemAPI.seller.orders();
+      const statusClass = { delivered:'ok', confirmed:'ok', shipped:'pending', pending:'pending', disputed:'bad', cancelled:'bad' };
+      const tbody = document.querySelector('#pane-overview .dtable tbody');
+      tbody.innerHTML = orderItems.slice(0,5).map(item => `
+        <tr>
+          <td>#${item.order.order_number}</td>
+          <td>${item.title_snapshot}</td>
+          <td>${item.order.buyer ? item.order.buyer.name : ''}</td>
+          <td>${EpreemUI.money(item.unit_price * item.quantity)}</td>
+          <td><span class="status-pill ${statusClass[item.order.fulfillment_status] || 'pending'}">${item.order.fulfillment_status}</span></td>
+        </tr>`).join('') || `<tr><td colspan="5" style="text-align:center; color:var(--ink-faint); padding:24px;">No orders yet.</td></tr>`;
+    }catch(err){ /* ignore */ }
+  }
+
+  async function loadProducts(){
+    try{
+      const products = await EpreemAPI.seller.products();
+      sellerProducts = products;
+      const statusClass = { live:'ok', pending_review:'pending', suspended:'bad', sold:'ok', draft:'pending' };
+      document.querySelector('#productsTable tbody').innerHTML = products.map(p => `
+        <tr>
+          <td>${p.title}</td>
+          <td>${p.category ? p.category.name : ''}</td>
+          <td>${EpreemUI.money(p.price, p.currency)}</td>
+          <td><span class="status-pill ${statusClass[p.status] || 'pending'}">${p.status.replace('_',' ')}</span></td>
+          <td><a href="product.php?id=${p.id}" style="color:var(--gold-bright); font-size:12px;">View →</a></td>
+        </tr>`).join('') || `<tr><td colspan="5" style="text-align:center; color:var(--ink-faint); padding:24px;">No listings yet — add your first product above.</td></tr>`;
+    }catch(err){ /* ignore */ }
+  }
+
+  async function loadAuctions(){
+    try{
+      const products = await EpreemAPI.seller.products();
+      const auctionProducts = products.filter(p => p.listing_type === 'auction');
+      EpreemUI.renderCards('sellerAuctionGrid', auctionProducts);
+    }catch(err){ EpreemUI.renderCards('sellerAuctionGrid', []); }
+  }
+
+  loadOverview();
+  loadProductCategories();
+  loadProducts();
+  loadAuctions();
+
+  document.querySelector('#newProductModal form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const titleEl = e.target.elements.title;
+    const categoryEl = e.target.elements.category_id;
+    const priceEl = e.target.elements.price;
+    const saleChannelEl = e.target.elements.sale_channel;
+    const currencyEl = e.target.elements.currency;
+    const imageEl = e.target.elements.image;
+    const descEl = e.target.elements.description;
+    const productId = e.target.elements.product_id.value;
+    const category = categoryOptions.find(c => String(c.id) === categoryEl.value);
+    if(!category){ toast('Select a category'); return; }
+    try{
+      const imageFile = imageEl.files[0];
+      if(imageFile && imageFile.size > 5 * 1024 * 1024){ toast('Use an image smaller than 5 MB'); return; }
+      const imageData = imageFile ? await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(imageFile);
+      }) : null;
+      const payload = {
+        title: titleEl.value,
+        category_id: category.id,
+        price: Number(priceEl.value),
+        currency: currencyEl.value,
+        sale_channel: saleChannelEl.value,
+        description: descEl.value,
+        listing_type: 'fixed',
+      };
+      if(imageData) payload.image_data = imageData;
+      if(productId){
+        await EpreemAPI.seller.updateProduct(productId, payload);
+        toast('Listing updated and submitted for review');
+      }else{
+        await EpreemAPI.seller.createProduct(payload);
+        toast('Product submitted for review');
+      }
+      document.getElementById('newProductModal').classList.remove('open');
+      e.target.reset();
+      loadProducts();
+    }catch(err){
+      toast(err.message || 'Could not submit product');
+    }
+  });
+
+  document.querySelector('#productsTable tbody').addEventListener('click', (e) => {
+    const link = e.target.closest('a[href^="product.php?id="]');
+    if(!link) return;
+    const productId = new URL(link.href).searchParams.get('id');
+    const product = sellerProducts.find(item => String(item.id) === productId);
+    if(!product || product.status === 'live') return;
+    e.preventDefault();
+    const form = document.querySelector('#newProductModal form');
+    form.elements.product_id.value = product.id;
+    form.elements.title.value = product.title || '';
+    form.elements.category_id.value = product.category_id || '';
+    form.elements.price.value = product.price || '';
+    form.elements.currency.value = product.currency || 'USD';
+    form.elements.sale_channel.value = product.sale_channel || 'retail';
+    form.elements.description.value = product.description || '';
+    document.getElementById('productModalTitle').textContent = 'Edit Product';
+    document.getElementById('newProductModal').classList.add('open');
+  });
+
+  function showPane(name){
+    document.querySelectorAll('.dash-pane').forEach(p => p.style.display = 'none');
+    document.getElementById('pane-' + name).style.display = 'block';
+    document.querySelectorAll('.dash-nav a[data-pane]').forEach(a => a.classList.toggle('active', a.dataset.pane === name));
+  }
+  document.querySelectorAll('.dash-nav a[data-pane]').forEach(a => {
+    a.addEventListener('click', (e) => { e.preventDefault(); showPane(a.dataset.pane); });
+  });
+  document.querySelectorAll('[data-pane-trigger]').forEach(a => {
+    a.addEventListener('click', (e) => { e.preventDefault(); showPane(a.dataset.paneTrigger); });
+  });
+});
+</script>
+</body>
+</html>

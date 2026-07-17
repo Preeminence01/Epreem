@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0E0D0B" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Sign In — EPREEM</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main>
+  <div class="auth-shell">
+    <div class="auth-card">
+      <span class="eyebrow">Welcome back</span>
+      <h1>Sign in to EPREEM</h1>
+      <p class="sub">Access your saved items, orders, bids and messages.</p>
+
+      <form id="loginForm" novalidate>
+        <div class="field">
+          <label for="email">Email address</label>
+          <input type="email" id="email" required placeholder="you@example.com" />
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" required placeholder="••••••••" />
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:22px;">
+          <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-dim);">
+            <input type="checkbox" style="accent-color:var(--gold);" /> Remember me
+          </label>
+          <a href="forgot-password.html" style="font-size:13px; color:var(--gold-bright);">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn btn-gold btn-block">Sign In</button>
+      </form>
+
+      <div class="divider-or">or continue as</div>
+      <div class="field-row">
+        <button class="btn btn-line" onclick="quickLogin('buyer')" type="button">Buyer</button>
+        <button class="btn btn-line" onclick="quickLogin('seller')" type="button">Seller</button>
+      </div>
+
+      <p class="auth-foot">New to EPREEM? <a href="register.html">Create an account</a></p>
+    </div>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/password-visibility.js?v=1"></script>
+<script src="js/app.js"></script>
+<script>
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    try{
+      const { user } = await EpreemAPI.auth.login(email, password);
+      toast('Signed in successfully');
+      setTimeout(() => {
+        location.href = (user.role === 'seller' && user.verification_status === 'verified')
+          ? 'seller-dashboard.html'
+          : (['admin', 'super_admin'].includes(user.role) ? 'dashboard.php' : 'profile.html');
+      }, 500);
+    }catch(err){
+      toast(err.message || 'Sign in failed — check your email and password');
+    }
+  });
+
+  // Seeded demo accounts (see backend README) — handy for trying the app without registering.
+  async function quickLogin(role){
+    const creds = {
+      buyer: { email: 'buyer@epreem.com', password: 'password' },
+      seller: { email: 'aureliafinejewelry@epreem.com', password: 'password' },
+    };
+    const c = creds[role];
+    try{
+      const { user } = await EpreemAPI.auth.login(c.email, c.password);
+      toast('Signed in as ' + role);
+      setTimeout(() => location.href = (user.role === 'seller' && user.verification_status === 'verified') ? 'seller-dashboard.html' : 'profile.html', 500);
+    }catch(err){
+      toast('Demo login unavailable — run the database seeder on your backend first');
+    }
+  }
+</script>
+</body>
+</html>

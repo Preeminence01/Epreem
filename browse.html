@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0E0D0B" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Browse Listings — EPREEM</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main>
+  <div class="page-title-band">
+    <div class="wrap">
+      <span class="eyebrow" id="bcrumb">Marketplace</span>
+      <h1 id="pageHeading">All Listings</h1>
+      <p>Browse verified, high-value items across every category — filter by price, location, condition and seller.</p>
+    </div>
+  </div>
+
+  <div class="wrap" style="padding:36px 0 80px;">
+    <div class="browse-layout">
+      <aside class="filters">
+        <h3>Category</h3>
+        <div class="filter-group" id="catFilters"></div>
+
+        <h3>Price Range</h3>
+        <div class="filter-group">
+          <div class="range-row">
+            <input type="number" id="minPrice" placeholder="Min" />
+            <input type="number" id="maxPrice" placeholder="Max" />
+          </div>
+        </div>
+
+        <h3>Condition</h3>
+        <div class="filter-group">
+          <label><input type="checkbox" class="condFilter" value="New" /> New</label>
+          <label><input type="checkbox" class="condFilter" value="Like new" /> Like new</label>
+          <label><input type="checkbox" class="condFilter" value="Excellent" /> Excellent</label>
+          <label><input type="checkbox" class="condFilter" value="Used" /> Pre-owned / Used</label>
+        </div>
+
+        <h3>Listing type</h3>
+        <div class="filter-group">
+          <label><input type="radio" name="ltype" value="all" checked /> All listings</label>
+          <label><input type="radio" name="ltype" value="fixed" /> Buy now</label>
+          <label><input type="radio" name="ltype" value="auction" /> Auction</label>
+        </div>
+
+        <h3>Buying mode</h3>
+        <div class="filter-group">
+          <label><input type="radio" name="saleChannel" value="all" checked /> Retail and wholesale</label>
+          <label><input type="radio" name="saleChannel" value="retail" /> Retail</label>
+          <label><input type="radio" name="saleChannel" value="wholesale" /> Wholesale</label>
+        </div>
+
+        <h3>Seller</h3>
+        <div class="filter-group">
+          <label><input type="checkbox" id="verifiedOnly" /> Verified sellers only</label>
+        </div>
+
+        <button class="btn btn-line btn-block" onclick="clearFilters()">Clear all filters</button>
+      </aside>
+
+      <div>
+        <div class="results-toolbar">
+          <span id="resultCount" style="color:var(--ink-dim); font-size:13px;"></span>
+          <select id="sortSelect">
+            <option value="relevance">Sort: Relevance</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="title">Title: A–Z</option>
+          </select>
+        </div>
+        <div class="grid-cards" id="resultsGrid"></div>
+        <div class="empty-state" id="emptyState" style="display:none;">
+          <div style="font-size:38px;">◇</div>
+          <h3>No listings match your filters</h3>
+          <p>Try widening your price range or clearing a filter.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script>
+document.addEventListener('epreem:layout-ready', async (e) => {
+  const categories = e.detail.categories;
+  const params = new URLSearchParams(location.search);
+  const activeCat = params.get('cat');
+  const q = params.get('q') || '';
+
+  document.getElementById('catFilters').innerHTML = categories.map(c => `
+    <label><input type="checkbox" class="catFilter" value="${c.slug}" ${c.slug===activeCat?'checked':''}/> ${c.icon || '◆'} ${c.name}</label>
+  `).join('');
+
+  if(activeCat){
+    const cat = categories.find(c => c.slug === activeCat);
+    if(cat){ document.getElementById('pageHeading').textContent = cat.name; document.getElementById('bcrumb').textContent = 'Marketplace / ' + cat.name; }
+  }
+  if(q){
+    document.getElementById('pageHeading').textContent = 'Results for “' + q + '”';
+  }
+
+  let debounceTimer;
+  async function applyFilters(){
+    const checkedCats = [...document.querySelectorAll('.catFilter:checked')].map(c => c.value);
+    const checkedConds = [...document.querySelectorAll('.condFilter:checked')].map(c => c.value);
+    const ltype = document.querySelector('input[name=ltype]:checked').value;
+    const saleChannel = document.querySelector('input[name=saleChannel]:checked').value;
+    const verifiedOnly = document.getElementById('verifiedOnly').checked;
+    const min = document.getElementById('minPrice').value;
+    const max = document.getElementById('maxPrice').value;
+    const sortMap = { 'price-asc': 'price_asc', 'price-desc': 'price_desc', 'title': 'title', 'relevance': 'newest' };
+    const sort = sortMap[document.getElementById('sortSelect').value] || 'newest';
+
+    const apiParams = { sort, per_page: 48 };
+    if(checkedCats.length === 1) apiParams.category = checkedCats[0]; // API filters one category at a time
+    if(checkedConds.length) apiParams.condition = checkedConds[0];
+    if(ltype !== 'all') apiParams.listing_type = ltype;
+    if(saleChannel !== 'all') apiParams.sale_channel = saleChannel;
+    if(verifiedOnly) apiParams.verified_only = 1;
+    if(min) apiParams.min_price = min;
+    if(max) apiParams.max_price = max;
+    if(q) apiParams.q = q;
+
+    document.getElementById('resultCount').textContent = 'Loading…';
+    try{
+      const results = await EpreemAPI.products.list(apiParams);
+      let items = results.data;
+      // client-side narrowing for multi-category selection (API only takes one at a time)
+      if(checkedCats.length > 1){
+        items = items.filter(p => p.category && checkedCats.includes(p.category.slug));
+      }
+      document.getElementById('resultCount').textContent = items.length + ' listing' + (items.length === 1 ? '' : 's') + ' found';
+      document.getElementById('emptyState').style.display = items.length ? 'none' : 'block';
+      EpreemUI.renderCards('resultsGrid', items);
+    }catch(err){
+      document.getElementById('resultCount').textContent = 'Could not load listings';
+      EpreemUI.renderCards('resultsGrid', []);
+    }
+  }
+
+  function debouncedApply(){ clearTimeout(debounceTimer); debounceTimer = setTimeout(applyFilters, 300); }
+
+  document.querySelectorAll('.catFilter,.condFilter,#verifiedOnly,#sortSelect').forEach(el => el.addEventListener('input', applyFilters));
+  document.querySelectorAll('#minPrice,#maxPrice').forEach(el => el.addEventListener('input', debouncedApply));
+  document.querySelectorAll('input[name=ltype]').forEach(el => el.addEventListener('change', applyFilters));
+  document.querySelectorAll('input[name=saleChannel]').forEach(el => el.addEventListener('change', applyFilters));
+
+  window.clearFilters = function(){
+    document.querySelectorAll('.catFilter,.condFilter').forEach(c => c.checked = false);
+    document.getElementById('verifiedOnly').checked = false;
+    document.getElementById('minPrice').value = '';
+    document.getElementById('maxPrice').value = '';
+    document.querySelector('input[name=ltype][value=all]').checked = true;
+    document.querySelector('input[name=saleChannel][value=all]').checked = true;
+    applyFilters();
+  };
+
+  applyFilters();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0E0D0B" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>My Profile — EPREEM</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main>
+  <div class="wrap">
+    <div class="profile-layout">
+      <aside>
+        <div class="profile-card">
+          <div class="avatar" id="profAvatar">A</div>
+          <div style="font-family:var(--display); font-size:17px;" id="profName">Guest</div>
+          <div style="font-size:12px; color:var(--ink-faint); margin-top:4px;" id="profEmail">—</div>
+          <span class="verified-pill" style="margin-top:10px; display:inline-flex;">✓ Verified Buyer</span>
+        </div>
+        <nav class="profile-nav" style="margin-top:18px;">
+          <a href="#profile-tab" class="active" data-tab="profile-tab">Account Details</a>
+          <a href="#orders-tab" data-tab="orders-tab">Order History</a>
+          <a href="#saved" data-tab="saved-tab" id="savedLink">Saved Items</a>
+          <a href="#bids-tab" data-tab="bids-tab">My Bids</a>
+          <a href="#addr-tab" data-tab="addr-tab">Addresses</a>
+          <a href="#" onclick="Auth.logout()" style="color:var(--red-bright);">Sign Out</a>
+        </nav>
+      </aside>
+
+      <div>
+        <div id="profile-tab" class="dash-pane">
+          <h1 style="font-size:26px; margin-bottom:24px;">Account Details</h1>
+          <div class="panel" style="padding:24px;">
+            <div class="field-row">
+              <div class="field"><label>Full name</label><input type="text" id="editName" /></div>
+              <div class="field"><label>Phone number</label><input type="text" placeholder="+233 ..." /></div>
+            </div>
+            <div class="field"><label>Email</label><input type="email" id="editEmail" /></div>
+            <button class="btn btn-gold" onclick="toast('Profile updated')">Save Changes</button>
+          </div>
+        </div>
+
+        <div id="orders-tab" class="dash-pane" style="display:none;">
+          <h1 style="font-size:26px; margin-bottom:24px;">Order History</h1>
+          <div class="panel">
+            <table class="dtable">
+              <thead><tr><th>Order</th><th>Item</th><th>Date</th><th>Total</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>#EP-3391</td><td>Edwardian Diamond Halo Ring</td><td>Jun 12, 2026</td><td>$18,500</td><td><span class="status-pill ok">Delivered</span></td></tr>
+                <tr><td>#EP-3302</td><td>Range Rover Autobiography</td><td>Apr 28, 2026</td><td>$132,000</td><td><span class="status-pill ok">Delivered</span></td></tr>
+                <tr><td>#EP-3110</td><td>Contemporary Oil Triptych</td><td>Feb 03, 2026</td><td>$6,200</td><td><span class="status-pill pending">In Transit</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="saved-tab" class="dash-pane" style="display:none;">
+          <h1 style="font-size:26px; margin-bottom:24px;">Saved Items</h1>
+          <div class="grid-cards cols-3" id="savedGrid"></div>
+          <div class="empty-state" id="savedEmpty" style="display:none;">
+            <div style="font-size:38px;">♡</div>
+            <h3>No saved items yet</h3>
+            <p>Tap the heart icon on any listing to save it here.</p>
+            <a href="browse.html" class="btn btn-gold" style="margin-top:18px;">Browse Listings</a>
+          </div>
+        </div>
+
+        <div id="bids-tab" class="dash-pane" style="display:none;">
+          <h1 style="font-size:26px; margin-bottom:24px;">My Bids</h1>
+          <div class="panel">
+            <table class="dtable">
+              <thead><tr><th>Lot</th><th>Your Bid</th><th>Current Bid</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>Porsche 911 Turbo S</td><td>$152,000</td><td>$153,080</td><td><span class="status-pill bad">Outbid</span></td></tr>
+                <tr><td>Burmese Jade Sculpture</td><td>$20,812</td><td>$20,812</td><td><span class="status-pill ok">Highest Bidder</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="addr-tab" class="dash-pane" style="display:none;">
+          <h1 style="font-size:26px; margin-bottom:24px;">Addresses</h1>
+          <div class="panel" style="padding:22px;">
+            <div style="display:flex; justify-content:space-between; align-items:start; padding-bottom:16px; border-bottom:1px solid var(--line-soft); margin-bottom:16px;">
+              <div>
+                <b style="font-size:13px;">Home</b>
+                <p style="color:var(--ink-dim); font-size:13px; margin-top:4px;">12 Cantonments Close, Accra, Greater Accra</p>
+              </div>
+              <span class="status-pill ok">Default</span>
+            </div>
+            <button class="btn btn-line btn-sm">+ Add New Address</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  if(!Auth.isLoggedIn()){ toast('Sign in to view your profile'); setTimeout(()=>location.href='login.html', 800); return; }
+
+  let user = Auth.getUser();
+  try{ user = await EpreemAPI.auth.me(); }catch(err){ /* use cached user */ }
+
+  document.getElementById('profAvatar').textContent = user.name.charAt(0).toUpperCase();
+  document.getElementById('profName').textContent = user.name;
+  document.getElementById('profEmail').textContent = user.email;
+  document.getElementById('editName').value = user.name;
+  document.getElementById('editEmail').value = user.email;
+
+  async function renderSaved(){
+    try{
+      const wishlist = await EpreemAPI.wishlist.list();
+      const items = wishlist.map(w => w.product);
+      document.getElementById('savedEmpty').style.display = items.length ? 'none' : 'block';
+      EpreemUI.renderCards('savedGrid', items);
+    }catch(err){
+      document.getElementById('savedEmpty').style.display = 'block';
+      EpreemUI.renderCards('savedGrid', []);
+    }
+  }
+
+  async function renderOrders(){
+    const tbody = document.querySelector('#orders-tab .dtable tbody');
+    try{
+      const orders = await EpreemAPI.orders.list();
+      if(!orders.length){
+        tbody.innerHTML = `<tr><td colspan="5" style="color:var(--ink-faint); text-align:center; padding:26px;">No orders yet — <a href="browse.html" style="color:var(--gold-bright);">start browsing</a>.</td></tr>`;
+        return;
+      }
+      const statusClass = { delivered:'ok', paid:'ok', confirmed:'ok', shipped:'pending', pending:'pending', disputed:'bad', cancelled:'bad' };
+      tbody.innerHTML = orders.map(o => `
+        <tr style="cursor:pointer;" onclick="location.href='order-detail.html?id=${o.id}'">
+          <td>#${o.order_number}</td>
+          <td>${o.items.map(i => i.title_snapshot).join(', ')}</td>
+          <td>${new Date(o.created_at).toLocaleDateString('en-US', { month:'short', day:'2-digit', year:'numeric' })}</td>
+          <td>${EpreemUI.money(o.total)}</td>
+          <td><span class="status-pill ${statusClass[o.fulfillment_status] || 'pending'}">${o.fulfillment_status}</span></td>
+        </tr>`).join('');
+    }catch(err){
+      tbody.innerHTML = `<tr><td colspan="5" style="color:var(--ink-faint); text-align:center; padding:26px;">Could not load orders.</td></tr>`;
+    }
+  }
+
+  function showTab(id){
+    document.querySelectorAll('.profile-layout .dash-pane').forEach(p => p.style.display = 'none');
+    document.getElementById(id).style.display = 'block';
+    document.querySelectorAll('.profile-nav a[data-tab]').forEach(a => a.classList.toggle('active', a.dataset.tab === id));
+    if(id === 'saved-tab') renderSaved();
+    if(id === 'orders-tab') renderOrders();
+  }
+  document.querySelectorAll('.profile-nav a[data-tab]').forEach(a => {
+    a.addEventListener('click', (e) => { e.preventDefault(); showTab(a.dataset.tab); });
+  });
+  if(location.hash === '#saved') showTab('saved-tab');
+});
+</script>
+</body>
+</html>

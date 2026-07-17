@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0E0D0B" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Support — EPREEM</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main>
+  <div class="page-title-band">
+    <div class="wrap">
+      <span class="eyebrow">We're here to help</span>
+      <h1>Support</h1>
+      <p>Answers to common questions, or reach our team directly.</p>
+    </div>
+  </div>
+
+  <div class="wrap" style="max-width:820px; padding:50px 0 90px;">
+    <div class="panel" style="margin-bottom:36px;">
+      <div class="panel-head"><h3>Frequently Asked Questions</h3></div>
+      <div style="padding:6px 22px;">
+        <div style="padding:16px 0; border-bottom:1px solid var(--line-soft);">
+          <b style="font-size:14px;">How does EPREEM verify sellers?</b>
+          <p style="color:var(--ink-dim); font-size:13px; margin-top:6px;">Individual sellers submit identity documents; business accounts also submit registration paperwork. Both are reviewed by our admin team before approval.</p>
+        </div>
+        <div style="padding:16px 0; border-bottom:1px solid var(--line-soft);">
+          <b style="font-size:14px;">What happens if I'm outbid on an auction?</b>
+          <p style="color:var(--ink-dim); font-size:13px; margin-top:6px;">You'll receive an instant notification the moment someone places a higher bid, so you can respond before the countdown ends.</p>
+        </div>
+        <div style="padding:16px 0; border-bottom:1px solid var(--line-soft);">
+          <b style="font-size:14px;">What payment methods are supported?</b>
+          <p style="color:var(--ink-dim); font-size:13px; margin-top:6px;">Credit/debit cards, mobile money, bank transfer and digital wallets.</p>
+        </div>
+        <div style="padding:16px 0;">
+          <b style="font-size:14px;">My order arrived differently than described. What now?</b>
+          <p style="color:var(--ink-dim); font-size:13px; margin-top:6px;">Open the order from your profile and select "Report a Problem" to raise a dispute — our resolution team will review it.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Contact Us</h3></div>
+      <div style="padding:22px;">
+        <form id="supportForm">
+          <div class="field-row">
+            <div class="field"><label>Your name</label><input type="text" required placeholder="Jane Doe" /></div>
+            <div class="field"><label>Email</label><input type="email" required placeholder="you@example.com" /></div>
+          </div>
+          <div class="field"><label>How can we help?</label><textarea rows="4" required placeholder="Describe your issue…"></textarea></div>
+          <button type="submit" class="btn btn-gold">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script>
+  document.getElementById('supportForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    toast('Message sent — our team will reply within one business day');
+    e.target.reset();
+  });
+</script>
+</body>
+</html>

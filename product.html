@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0E0D0B" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Listing — EPREEM</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main>
+  <div class="wrap">
+    <nav class="crumb">
+      <a href="index.html">Home</a><span>/</span>
+      <a href="browse.html" id="crumbCat">Marketplace</a><span>/</span>
+      <span id="crumbTitle" style="color:var(--ink-dim);">Listing</span>
+    </nav>
+
+    <div class="pdp-grid" id="pdpRoot"><!-- filled by JS --></div>
+
+    <section class="tabs">
+      <button class="tab-btn active" data-tab="tabDesc">Description</button>
+      <button class="tab-btn" data-tab="tabSpecs">Specifications</button>
+      <button class="tab-btn" data-tab="tabReviews">Reviews</button>
+    </section>
+    <div id="tabDesc" class="tab-panel active">
+      <p id="descText"></p>
+    </div>
+    <div id="tabSpecs" class="tab-panel">
+      <table class="spec-table" id="specTable"></table>
+    </div>
+    <div id="tabReviews" class="tab-panel">
+      <p style="margin-bottom:18px;"><span class="stars">★★★★★</span> 4.8 average · 36 reviews</p>
+      <div class="bid-history">
+        <div class="row"><span>Nana K. — verified buyer</span><span>“Exactly as described, seller communicated clearly throughout.”</span></div>
+        <div class="row"><span>Efua A. — verified buyer</span><span>“Smooth escrow process and fast delivery.”</span></div>
+        <div class="row"><span>James O. — verified buyer</span><span>“Would purchase from this seller again.”</span></div>
+      </div>
+    </div>
+
+    <section class="section">
+      <div class="section-head">
+        <div><span class="eyebrow">You may also like</span><h2>Related listings</h2></div>
+      </div>
+      <div class="grid-cards" id="relatedGrid"></div>
+    </section>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id');
+
+  if(!id){ location.href = 'browse.php'; return; }
+
+  let p, related, reviews;
+  try{
+    const data = await EpreemAPI.products.get(id);
+    p = data.product;
+    related = data.related;
+    reviews = p.reviews || [];
+  }catch(err){
+    document.querySelector('main .wrap').innerHTML = `<div class="empty-state"><h3>Listing not found</h3><p>It may have been removed or sold.</p><a href="browse.php" class="btn btn-gold" style="margin-top:14px;">Back to Marketplace</a></div>`;
+    return;
+  }
+
+  const auction = p.auction;
+  const cat = p.category;
+  const images = p.images || [];
+  const canSeePrice = Auth.isLoggedIn();
+  const avgRating = reviews.length ? (reviews.reduce((s,r)=>s+r.rating,0) / reviews.length).toFixed(1) : '—';
+
+  document.title = p.title + ' — EPREEM';
+  document.getElementById('crumbCat').textContent = cat ? cat.name : 'Marketplace';
+  document.getElementById('crumbCat').href = 'browse.php?cat=' + (cat ? cat.slug : '');
+  document.getElementById('crumbTitle').textContent = p.title;
+
+  document.getElementById('pdpRoot').innerHTML = `
+    <div>
+      <div class="pdp-gallery-main" id="pdpMainImg">${images[0] ? `<img src="${images[0].url}" alt="${p.title}" />` : `<span>${cat ? cat.icon : '◆'}</span>`}</div>
+      <div class="pdp-thumbs">
+        ${images.length ? images.map((img,i) => `<div class="${i===0?'active':''}" style="background-image:url('${img.url}'); background-size:cover;" onclick="swapMainImage('${img.url}', this)"></div>`).join('') : '<div class="active"></div><div></div><div></div><div></div>'}
+      </div>
+    </div>
+    <div class="pdp-info">
+      <a class="cat-link" href="browse.php?cat=${cat ? cat.slug : ''}">${cat ? cat.name : ''}</a>
+      <h1>${p.title}</h1>
+      <div class="pdp-rating"><span class="stars">★★★★★</span> ${avgRating} · ${reviews.length} reviews · ${p.location || ''}</div>
+
+      ${auction ? `
+        <div class="pdp-price-box">
+          <span style="font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint);">Current bid · ${auction.bids_count ?? (auction.bids ? auction.bids.length : 0)} bids</span>
+          <div class="price">${canSeePrice ? EpreemUI.money(auction.current_bid || auction.starting_price) : 'Sign in for price'}</div>
+          <div style="margin:16px 0;"><span style="font-size:11px; text-transform:uppercase; color:var(--ink-faint);">Auction closes in</span>
+            <div class="countdown" style="margin-top:8px;">
+              <div><b id="cdH">--</b><span>hrs</span></div>
+              <div><b id="cdM">--</b><span>min</span></div>
+              <div><b id="cdS">--</b><span>sec</span></div>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field" style="margin-bottom:0;"><input type="number" id="bidAmount" placeholder="${canSeePrice ? (Number(auction.current_bid || auction.starting_price) + Number(auction.min_increment)).toLocaleString() : 'Sign in to bid'}" /></div>
+            <button class="btn btn-gold" onclick="placeBid()">${canSeePrice ? 'Place Bid' : 'Sign In'}</button>
+          </div>
+        </div>
+        <div class="bid-history" id="bidHistoryBox">
+          ${canSeePrice ? ((auction.bids || []).slice(0,5).map(b => `<div class="row"><span>${b.user ? b.user.name : 'Bidder'}</span><b>${EpreemUI.money(b.amount)}</b></div>`).join('') || '<div class="row"><span>No bids yet</span><span>Be the first to bid</span></div>') : '<div class="row"><span>Bid history</span><span>Sign in to view bid amounts</span></div>'}
+        </div>
+      ` : `
+        <div class="pdp-price-box">
+          ${canSeePrice && p.old_price ? `<span class="old-price" style="float:right;">${EpreemUI.money(p.old_price)}</span>` : ''}
+          <span style="font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint);">Price</span>
+          <div class="price">${canSeePrice ? EpreemUI.money(p.price) : 'Sign in for price'}</div>
+        </div>
+        <div class="qty-row">
+          <span style="font-size:13px; color:var(--ink-dim);">Quantity</span>
+          <div class="qty-control">
+            <button onclick="stepQty(-1)" type="button">−</button>
+            <input id="qtyInput" value="1" readonly />
+            <button onclick="stepQty(1)" type="button">+</button>
+          </div>
+        </div>
+        <div class="pdp-actions">
+          <button class="btn btn-gold" style="flex:1;" onclick="buyNow(${p.id})">${canSeePrice ? 'Buy Now' : 'Sign In'}</button>
+          <button class="btn btn-line" style="flex:1;" onclick="Cart.add(${p.id}, Number(document.getElementById('qtyInput').value))">${canSeePrice ? 'Add to Cart' : 'Sign in to buy'}</button>
+          <button class="btn btn-ghost" data-fav="${p.id}" onclick="Wishlist.toggle(${p.id}, this)">♡</button>
+        </div>
+      `}
+
+      <div class="pdp-meta-list">
+        <div><span>Category</span>${cat ? cat.name : ''}</div>
+        <div><span>Condition</span>${p.condition || ''}</div>
+        <div><span>Location</span>${p.location || ''}</div>
+        <div><span>Listing type</span>${auction ? 'Live auction' : 'Buy now'}</div>
+      </div>
+
+      <div class="seller-card">
+        <div class="avatar">${p.seller ? p.seller.name.charAt(0) : '?'}</div>
+        <div style="flex:1;">
+          <div class="name">${p.seller ? p.seller.name : ''} ${p.seller && p.seller.verification_status === 'verified' ? '<span class="verified-pill">✓ Verified</span>' : ''}</div>
+          <div class="sub">${p.seller && p.seller.business ? p.seller.business.company_name : 'Individual seller'}</div>
+        </div>
+        <button class="btn btn-line btn-sm" onclick="messageSeller(${p.seller ? p.seller.id : 0}, ${p.id})">Message</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('descText').textContent = p.description ||
+    `This ${(p.condition||'').toLowerCase()} ${p.title.toLowerCase()} is offered by ${p.seller ? p.seller.name : 'a verified seller'} on EPREEM. Contact the seller directly through EPREEM messaging for additional documentation or to schedule a viewing.`;
+
+  document.getElementById('specTable').innerHTML = `
+    <tr><td>Category</td><td>${cat ? cat.name : ''}</td></tr>
+    <tr><td>Condition</td><td>${p.condition || ''}</td></tr>
+    <tr><td>Location</td><td>${p.location || ''}</td></tr>
+    <tr><td>Seller</td><td>${p.seller ? p.seller.name : ''}</td></tr>
+    <tr><td>Warranty</td><td>${p.warranty ? 'Available' : 'Not included'}</td></tr>
+    <tr><td>Shipping / handover</td><td>Arranged with seller after purchase</td></tr>
+  `;
+
+  const reviewsPanel = document.getElementById('tabReviews');
+  reviewsPanel.innerHTML = `
+    <p style="margin-bottom:18px;"><span class="stars">★★★★★</span> ${avgRating} average · ${reviews.length} reviews</p>
+    <div class="bid-history">
+      ${reviews.length ? reviews.map(r => `<div class="row"><span>${r.user ? r.user.name : 'Buyer'} — ${'★'.repeat(r.rating)}</span><span>${r.comment || ''}</span></div>`).join('') : '<div class="row"><span>No reviews yet</span><span>—</span></div>'}
+    </div>
+  `;
+
+  EpreemUI.renderCards('relatedGrid', related);
+  initTabs('main');
+
+  window.swapMainImage = function(url, thumbEl){
+    document.getElementById('pdpMainImg').innerHTML = `<img src="${url}" alt="${p.title}" />`;
+    document.querySelectorAll('.pdp-thumbs div').forEach(d => d.classList.remove('active'));
+    thumbEl.classList.add('active');
+  };
+
+  window.stepQty = function(d){
+    const el = document.getElementById('qtyInput');
+    el.value = Math.max(1, Number(el.value) + d);
+  };
+
+  window.buyNow = async function(productId){
+    await Cart.add(productId, Number(document.getElementById('qtyInput').value));
+    setTimeout(() => location.href = 'cart.html', 400);
+  };
+
+  window.messageSeller = function(sellerId, productId){
+    if(!Auth.isLoggedIn()){ toast('Sign in to message this seller'); setTimeout(()=>location.href='login.html', 800); return; }
+    sessionStorage.setItem('epreem_prefill_conversation', JSON.stringify({ recipient_id: sellerId, product_id: productId }));
+    location.href = 'messages.html';
+  };
+
+  window.placeBid = async function(){
+    if(!Auth.isLoggedIn()){ toast('Sign in to place a bid'); setTimeout(()=>location.href='login.html', 800); return; }
+    const input = document.getElementById('bidAmount');
+    const val = Number(input.value);
+    if(!val){ toast('Enter a bid amount'); return; }
+    try{
+      const res = await EpreemAPI.auctions.bid(auction.id, val);
+      toast('Bid of ' + EpreemUI.money(val) + ' placed');
+      input.value = '';
+      // reflect the new leading bid immediately without a full reload
+      const box = document.querySelector('.pdp-price-box .price');
+      if(box) box.textContent = EpreemUI.money(res.auction.current_bid);
+    }catch(err){
+      toast(err.message || 'Could not place bid');
+    }
+  };
+
+  if(auction){
+    const endsAt = new Date(auction.ends_at).getTime();
+    function tick(){
+      const diff = Math.max(0, endsAt - Date.now());
+      document.getElementById('cdH').textContent = String(Math.floor(diff/3600000)).padStart(2,'0');
+      document.getElementById('cdM').textContent = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+      document.getElementById('cdS').textContent = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+    }
+    tick(); setInterval(tick, 1000);
+  }
+});
+</script>
+</body>
+</html>

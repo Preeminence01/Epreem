@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0E0D0B" />
+<link rel="apple-touch-icon" href="logo.jpg" />
+<title>EPREEM — A marketplace built on trust</title>
+<meta name="description" content="Discover approved listings from verified sellers on EPREEM." />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div id="site-header"></div>
+
+<main>
+  <section class="marketplace-intro">
+    <div class="wrap">
+      <div class="marketplace-intro__copy reveal">
+        <span class="eyebrow">Eternal Preeminence</span>
+        <h1>A marketplace built on <em>trust</em>.</h1>
+        <p>Explore distinctive assets from verified sellers. Every listing is reviewed by EPREEM before it reaches the marketplace.</p>
+        <form class="marketplace-search" action="browse.html" method="get">
+          <label class="sr-only" for="marketSearch">Search the marketplace</label>
+          <input id="marketSearch" name="q" type="search" placeholder="Search approved listings, categories, and sellers" />
+          <button class="btn btn-gold" type="submit">Search marketplace</button>
+        </form>
+        <div class="homepage-category-picker">
+          <label for="homeCategory">Browse products by category</label>
+          <select id="homeCategory"><option value="">Choose a category</option></select>
+        </div>
+        <div class="trust-points">
+          <span>Verified sellers</span><span>Admin-reviewed listings</span><span>Secure transactions</span>
+        </div>
+      </div>
+
+      <div class="ad-carousel reveal" aria-label="About EPREEM" aria-roledescription="carousel">
+        <div class="ad-carousel__track"></div>
+        <div class="ad-carousel__controls"><button type="button" data-slide="prev" aria-label="Previous banner">←</button><div class="ad-carousel__dots" aria-label="Choose a banner"></div><button type="button" data-slide="next" aria-label="Next banner">→</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head reveal"><div><span class="eyebrow">Browse with purpose</span><h2>Explore categories</h2></div><a href="browse.html" class="view-all">View all listings →</a></div>
+      <div class="cat-strip reveal" id="catStrip"></div>
+    </div>
+  </section>
+
+  <section class="section marketplace-listings">
+    <div class="wrap">
+      <div class="section-head reveal"><div><span class="eyebrow">The marketplace</span><h2>Approved listings</h2></div><span class="listing-count" id="listingCount">Loading listings…</span></div>
+      <div class="grid-cards reveal" id="approvedGrid" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="section how-it-works">
+    <div class="wrap">
+      <div class="section-head reveal"><div><span class="eyebrow">How EPREEM works</span><h2>Quality before quantity</h2></div></div>
+      <div class="approval-steps reveal">
+        <div><span>01</span><h3>Seller applies</h3><p>New sellers submit their details for an admin review.</p></div>
+        <div><span>02</span><h3>Listing is reviewed</h3><p>Products remain private until they are approved.</p></div>
+        <div><span>03</span><h3>Marketplace goes live</h3><p>Visitors see only approved, ready-to-buy listings.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="site-footer"></div>
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script>
+document.addEventListener('epreem:layout-ready', (event) => {
+  const categories = event.detail.categories || [];
+  document.getElementById('catStrip').innerHTML = categories.map(category => `
+    <a class="cat-tile" href="browse.html?cat=${encodeURIComponent(category.slug)}">
+      <span class="ico">${category.icon || '◇'}</span><span>${category.name}</span>
+    </a>`).join('') || '<p class="empty-inline">Categories will appear here once added by an administrator.</p>';
+  const select = document.getElementById('homeCategory');
+  select.innerHTML = '<option value="">Choose a category</option>' + categories.map(category => `<option value="${category.slug}">${category.name}</option>`).join('');
+  select.addEventListener('change', () => { if(select.value) location.href = `browse.html?cat=${encodeURIComponent(select.value)}`; });
+});
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const grid = document.getElementById('approvedGrid');
+  const count = document.getElementById('listingCount');
+  try {
+    const response = await EpreemAPI.products.list({ per_page: 8 });
+    const products = response.data || [];
+    EpreemUI.renderCards('approvedGrid', products);
+    count.textContent = products.length ? `${response.total || products.length} approved listing${(response.total || products.length) === 1 ? '' : 's'}` : 'New listings are being reviewed';
+    if (!products.length) {
+      grid.innerHTML = '<div class="empty-state empty-marketplace"><span>◇</span><h3>New listings are on their way</h3><p>Products appear here after a seller is approved and their listing passes review.</p><a class="btn btn-line btn-sm" href="register.html">Apply to sell</a></div>';
+    }
+  } catch (error) {
+    count.textContent = 'Marketplace unavailable';
+    grid.innerHTML = '<div class="empty-state empty-marketplace"><span>◇</span><h3>Listings are unavailable right now</h3><p>Please refresh the page or check back shortly.</p></div>';
+  }
+
+  const photoStories = [
+    ['photo_2026-07-13_19-50-27.jpg', 'Discover', 'Find assets with a story.'],
+    ['photo_2026-07-13_19-50-36.jpg', 'Sell confidently', 'List after approval, sell with clarity.'],
+    ['photo_2026-07-13_19-50-46.jpg', 'Curated access', 'Browse listings reviewed by our team.'],
+    ['photo_2026-07-13_19-50-52.jpg', 'Trade securely', 'Buy and sell with confidence.'],
+    ['photo_2026-07-13_19-50-56.jpg', 'Verified marketplace', 'Every seller starts with an approval review.'],
+    ['photo_2026-07-13_19-51-01.jpg', 'Distinctive goods', 'Explore valuable pieces in one trusted place.'],
+    ['photo_2026-07-13_19-51-05.jpg', 'Quality first', 'Listings appear only after admin approval.'],
+    ['photo_2026-07-13_19-51-15.jpg', 'For collectors', 'Discover items worth keeping and sharing.'],
+    ['photo_2026-07-13_19-51-20.jpg', 'For businesses', 'Connect serious buyers with trusted sellers.'],
+    ['photo_2026-07-13_19-51-24.jpg', 'Built on trust', 'A clear path from listing to marketplace.'],
+    ['photo_2026-07-13_21-00-49.jpg', 'Jewelry', 'Celebrate craft, rarity, and lasting value.'],
+    ['photo_2026-07-13_21-00-58.jpg', 'Property', 'Connect buyers and sellers of exceptional spaces.'],
+    ['photo_2026-07-13_21-01-04.jpg', 'Vehicles', 'Browse standout vehicles with confidence.'],
+    ['photo_2026-07-13_21-01-22.jpg', 'Art and design', 'Discover objects made to be admired.'],
+    ['photo_2026-07-13_21-01-29.jpg', 'Equipment', 'Source valuable tools and business assets.'],
+    ['photo_2026-07-13_21-01-35.jpg', 'Collectibles', 'Find distinctive pieces for every collection.'],
+    ['photo_2026-07-13_21-01-40.jpg', 'Curated discovery', 'One marketplace for meaningful assets.'],
+    ['photo_2026-07-13_21-01-46.jpg', 'Secure selling', 'Submit your product and await review.'],
+    ['photo_2026-07-13_21-01-53.jpg', 'Trusted buying', 'See listings that are ready for the market.'],
+    ['photo_2026-07-13_21-01-58.jpg', 'Better trade', 'A simpler way to buy and sell high-value items.'],
+    ['photo_2026-07-13_21-02-05.jpg', 'Marketplace access', 'Search categories and discover approved products.'],
+    ['photo_2026-07-13_21-02-11.jpg', 'Seller support', 'Keep your inventory organised from one dashboard.'],
+    ['photo_2026-07-13_21-02-16.jpg', 'Admin reviewed', 'Our approval process keeps the marketplace focused.'],
+    ['photo_2026-07-13_21-02-23.jpg', 'Find value', 'Explore opportunities across every category.'],
+    ['photo_2026-07-13_21-02-28.jpg', 'Private marketplace', 'A considered place for serious transactions.'],
+    ['photo_2026-07-13_21-02-35.jpg', 'From listing to sale', 'A clear workflow for every seller.'],
+    ['photo_2026-07-13_21-02-41.jpg', 'Approved products', 'Only reviewed listings are visible to visitors.'],
+    ['photo_2026-07-13_21-02-46.jpg', 'Eternal preeminence', 'Trade with care, purpose, and confidence.'],
+    ['photo_2026-07-13_21-02-52.jpg', 'EPREEM', 'The trusted home for high-value assets.']
+  ];
+  const track = document.querySelector('.ad-carousel__track');
+  track.innerHTML = photoStories.map(([image, label, message], index) => `<article class="ad-slide ${index === 0 ? 'active' : ''}"><img src="${image}" alt="${label}" /><div><span>${label}</span><strong>${message}</strong></div></article>`).join('');
+  const slides = [...document.querySelectorAll('.ad-slide')];
+  const dots = document.querySelector('.ad-carousel__dots');
+  let current = 0;
+  const showSlide = (index) => {
+    current = (index + slides.length) % slides.length;
+    slides.forEach((slide, slideIndex) => slide.classList.toggle('active', slideIndex === current));
+    [...dots.children].forEach((dot, dotIndex) => dot.classList.toggle('active', dotIndex === current));
+  };
+  slides.forEach((_, index) => { const dot = document.createElement('button'); dot.type = 'button'; dot.setAttribute('aria-label', `Show banner ${index + 1}`); dot.addEventListener('click', () => showSlide(index)); dots.append(dot); });
+  document.querySelector('[data-slide="prev"]').addEventListener('click', () => showSlide(current - 1));
+  document.querySelector('[data-slide="next"]').addEventListener('click', () => showSlide(current + 1));
+  showSlide(0);
+  setInterval(() => showSlide(current + 1), 5500);
+});
+</script>
+</body>
+</html>

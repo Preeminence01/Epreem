@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0E0D0B" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Messages — EPREEM</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main>
+  <div class="wrap" style="padding:34px 0 80px;">
+    <span class="eyebrow">Secure chat</span>
+    <h1 style="margin:10px 0 24px; font-size:28px;">Messages</h1>
+
+    <div class="msg-shell">
+      <div class="msg-list" id="msgList"></div>
+      <div class="chat-col">
+        <div class="chat-head" id="chatHead"></div>
+        <div class="chat-body" id="chatBody"></div>
+        <form class="chat-input" id="chatForm">
+          <input type="text" id="chatInput" placeholder="Write a message…" autocomplete="off" />
+          <button class="btn btn-gold btn-sm" type="submit">Send</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  if(!Auth.isLoggedIn()){
+    document.querySelector('.msg-shell').innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div style="font-size:38px;">✉</div><h3>Sign in to view your messages</h3><a href="login.html" class="btn btn-gold" style="margin-top:14px;">Sign In</a></div>`;
+    return;
+  }
+
+  const me = Auth.getUser();
+  let conversations = [];
+  let activeId = null;
+
+  async function loadConversations(){
+    try{ conversations = await EpreemAPI.conversations.list(); }
+    catch(err){ conversations = []; }
+
+    // Handle a "message seller" hand-off from the product page.
+    const prefill = sessionStorage.getItem('epreem_prefill_conversation');
+    if(prefill){
+      sessionStorage.removeItem('epreem_prefill_conversation');
+      const { recipient_id, product_id } = JSON.parse(prefill);
+      try{
+        const res = await EpreemAPI.conversations.start({ recipient_id, product_id, body: "Hi, I'm interested in this listing." });
+        conversations = await EpreemAPI.conversations.list();
+        activeId = res.conversation_id;
+      }catch(err){ /* ignore */ }
+    }
+
+    if(!activeId && conversations.length) activeId = conversations[0].id;
+    renderAll();
+  }
+
+  function renderList(){
+    if(!conversations.length){
+      document.getElementById('msgList').innerHTML = `<div class="empty-state"><p>No conversations yet.</p></div>`;
+      return;
+    }
+    document.getElementById('msgList').innerHTML = conversations.map(c => `
+      <div class="msg-item ${c.id===activeId?'active':''}" data-id="${c.id}">
+        <div class="avatar-sm">${c.with.name.charAt(0)}</div>
+        <div style="flex:1; min-width:0;">
+          <div class="nm">${c.with.name}</div>
+          <div class="pv">${c.preview || 'No messages yet'}</div>
+        </div>
+      </div>`).join('');
+    document.querySelectorAll('.msg-item').forEach(el => el.addEventListener('click', () => { activeId = Number(el.dataset.id); renderAll(); }));
+  }
+
+  async function renderChat(){
+    if(!activeId){
+      document.getElementById('chatHead').innerHTML = '';
+      document.getElementById('chatBody').innerHTML = `<div class="empty-state"><p>Select a conversation to start chatting.</p></div>`;
+      return;
+    }
+    let convo;
+    try{ convo = await EpreemAPI.conversations.get(activeId); }
+    catch(err){ return; }
+
+    const other = convo.user_one_id === me.id ? convo.user_two : convo.user_one;
+    document.getElementById('chatHead').innerHTML = `
+      <div class="avatar-sm">${other.name.charAt(0)}</div>
+      <div><div style="font-size:14px; font-weight:600;">${other.name}</div><div style="font-size:11px; color:var(--ink-faint);">Usually replies within an hour</div></div>`;
+    document.getElementById('chatBody').innerHTML = convo.messages.map(m =>
+      `<div class="bubble ${m.sender_id === me.id ? 'out' : 'in'}">${m.body}</div>`
+    ).join('') || `<div class="empty-state"><p>Say hello 👋</p></div>`;
+    const body = document.getElementById('chatBody');
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function renderAll(){ renderList(); renderChat(); }
+
+  document.getElementById('chatForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if(!text || !activeId) return;
+    input.value = '';
+    try{
+      await EpreemAPI.conversations.send(activeId, text);
+      renderChat();
+    }catch(err){ toast(err.message || 'Could not send message'); }
+  });
+
+  loadConversations();
+});
+</script>
+</body>
+</html>

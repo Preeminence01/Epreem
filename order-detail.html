@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0E0D0B" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Order Detail — EPREEM</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main>
+  <div class="wrap" style="padding:30px 0 90px; max-width:820px;">
+    <nav class="crumb" style="padding-top:0;">
+      <a href="profile.html">My Profile</a><span>/</span>
+      <a href="profile.html#orders-tab">Orders</a><span>/</span>
+      <span id="crumbOrder" style="color:var(--ink-dim);">Order</span>
+    </nav>
+
+    <div id="orderRoot">
+      <div class="empty-state"><p>Loading order…</p></div>
+    </div>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<div class="modal-overlay" id="disputeModal">
+  <div class="modal-box">
+    <span class="close" onclick="document.getElementById('disputeModal').classList.remove('open')">×</span>
+    <h3>Raise a Dispute</h3>
+    <p style="color:var(--ink-dim); font-size:13px; margin-bottom:20px;">Tell us what went wrong. Our resolution team will review the order and get back to you.</p>
+    <form id="disputeForm">
+      <div class="field">
+        <label>Reason</label>
+        <select id="disputeReason" required>
+          <option value="">Select a reason</option>
+          <option>Item not as described</option>
+          <option>Item never arrived</option>
+          <option>Delayed handover</option>
+          <option>Payment mismatch</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field"><label>Details</label><textarea id="disputeDetails" rows="4" placeholder="Describe the issue…"></textarea></div>
+      <button type="submit" class="btn btn-gold btn-block">Submit Dispute</button>
+    </form>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script>
+const statusSteps = ['pending', 'confirmed', 'shipped', 'delivered'];
+const statusLabel = { pending:'Order Placed', confirmed:'Confirmed', shipped:'Shipped', delivered:'Delivered', cancelled:'Cancelled', disputed:'Disputed' };
+
+let currentOrder = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if(!Auth.isLoggedIn()){ toast('Sign in to view this order'); setTimeout(()=>location.href='login.html', 800); return; }
+
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id');
+  if(!id){ location.href = 'profile.html#orders-tab'; return; }
+
+  try{
+    currentOrder = await EpreemAPI.orders.get(id);
+  }catch(err){
+    document.getElementById('orderRoot').innerHTML = `<div class="empty-state"><h3>Order not found</h3><p>It may not belong to your account.</p><a href="profile.html#orders-tab" class="btn btn-gold" style="margin-top:14px;">Back to Orders</a></div>`;
+    return;
+  }
+
+  render(currentOrder);
+});
+
+function render(o){
+  document.getElementById('crumbOrder').textContent = '#' + o.order_number;
+  const stepIndex = statusSteps.indexOf(o.fulfillment_status);
+  const isTerminalIssue = ['cancelled', 'disputed'].includes(o.fulfillment_status);
+
+  document.getElementById('orderRoot').innerHTML = `
+    <div class="page-title-band" style="border-bottom:0; padding-top:14px;">
+      <span class="eyebrow">Order #${o.order_number}</span>
+      <h1 style="font-size:26px; margin-top:8px;">${EpreemUI.money(o.total)} · ${new Date(o.created_at).toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' })}</h1>
+    </div>
+
+    ${isTerminalIssue ? `
+      <div class="banner-strip" style="border-color:${o.fulfillment_status==='disputed' ? 'var(--red)' : 'var(--line-soft)'};">
+        <span class="status-pill ${o.fulfillment_status==='disputed' ? 'bad' : 'pending'}">${statusLabel[o.fulfillment_status]}</span>
+        <span style="font-size:13px; color:var(--ink-dim);">${o.fulfillment_status === 'disputed' ? 'Our resolution team is reviewing this order.' : 'This order was cancelled.'}</span>
+      </div>
+    ` : `
+      <div class="panel" style="padding:26px;">
+        <div style="display:flex; justify-content:space-between; position:relative;">
+          <div style="position:absolute; top:14px; left:0; right:0; height:2px; background:var(--line-soft); z-index:0;"></div>
+          <div style="position:absolute; top:14px; left:0; height:2px; background:var(--gold); z-index:0; width:${(stepIndex/(statusSteps.length-1))*100}%;"></div>
+          ${statusSteps.map((s,i) => `
+            <div style="position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:8px; flex:1;">
+              <div style="width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; background:${i<=stepIndex ? 'var(--gold)' : 'var(--bg-raised)'}; color:${i<=stepIndex ? '#16130C' : 'var(--ink-faint)'}; border:1px solid ${i<=stepIndex ? 'var(--gold)' : 'var(--line)'};">${i<=stepIndex ? '✓' : (i+1)}</div>
+              <span style="font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:${i<=stepIndex ? 'var(--ink)' : 'var(--ink-faint)'};">${statusLabel[s]}</span>
+            </div>`).join('')}
+        </div>
+      </div>
+    `}
+
+    <div class="panel">
+      <div class="panel-head"><h3>Items</h3></div>
+      <table class="dtable">
+        <thead><tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead>
+        <tbody>
+          ${o.items.map(i => `<tr><td>${i.title_snapshot}</td><td>${i.quantity}</td><td>${EpreemUI.money(i.unit_price)}</td><td>${EpreemUI.money(i.unit_price * i.quantity)}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid-cards cols-3" style="margin-bottom:28px;">
+      <div class="card" style="padding:20px;">
+        <span class="card-cat">Shipping to</span>
+        <p style="font-size:13px; color:var(--ink-dim); margin-top:8px; line-height:1.6;">${o.shipping_name}<br>${o.shipping_address}<br>${o.shipping_city}, ${o.shipping_region}<br>${o.shipping_phone}</p>
+      </div>
+      <div class="card" style="padding:20px;">
+        <span class="card-cat">Payment</span>
+        <p style="font-size:13px; color:var(--ink-dim); margin-top:8px;">${o.payment_method.replace('_',' ')}</p>
+        <span class="status-pill ${o.payment_status==='paid' ? 'ok' : 'pending'}" style="margin-top:8px; display:inline-flex;">${o.payment_status}</span>
+      </div>
+      <div class="card" style="padding:20px;">
+        <span class="card-cat">Order Summary</span>
+        <div class="summary-row" style="padding:6px 0;"><span>Subtotal</span><span>${EpreemUI.money(o.subtotal)}</span></div>
+        <div class="summary-row" style="padding:6px 0;"><span>Shipping</span><span>${EpreemUI.money(o.shipping_fee)}</span></div>
+        ${o.discount > 0 ? `<div class="summary-row" style="padding:6px 0;"><span>Discount</span><span>−${EpreemUI.money(o.discount)}</span></div>` : ''}
+        <div class="summary-row total" style="padding-top:10px;"><span>Total</span><b>${EpreemUI.money(o.total)}</b></div>
+      </div>
+    </div>
+
+    ${o.dispute ? `
+      <div class="banner-strip">
+        <span class="status-pill bad">Dispute ${o.dispute.status.replace('_',' ')}</span>
+        <span style="font-size:13px; color:var(--ink-dim);">${o.dispute.reason}</span>
+      </div>
+    ` : (o.fulfillment_status === 'delivered' || o.fulfillment_status === 'shipped' ? `
+      <button class="btn btn-danger" onclick="document.getElementById('disputeModal').classList.add('open')">Report a Problem</button>
+    ` : '')}
+  `;
+}
+
+document.getElementById('disputeForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const reason = document.getElementById('disputeReason').value;
+  const details = document.getElementById('disputeDetails').value;
+  if(!reason){ toast('Select a reason'); return; }
+  try{
+    await EpreemAPI.orders.dispute(currentOrder.id, { reason, details });
+    toast('Dispute submitted — our team will follow up');
+    document.getElementById('disputeModal').classList.remove('open');
+    currentOrder = await EpreemAPI.orders.get(currentOrder.id);
+    render(currentOrder);
+  }catch(err){
+    toast(err.message || 'Could not submit dispute');
+  }
+});
+</script>
+</body>
+</html>

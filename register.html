@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0E0D0B" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Create Account — EPREEM</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main>
+  <div class="auth-shell">
+    <div class="auth-card" style="max-width:500px;">
+      <span class="eyebrow">Join EPREEM</span>
+      <h1>Create your account</h1>
+      <p class="sub">Choose your reason for joining. Buyers are approved immediately; seller access requires admin approval.</p>
+
+      <form id="registerForm" novalidate>
+        <div class="role-pick">
+          <label><input type="radio" name="role" value="buyer" checked /><span>🛍️<br>Buyer</span></label>
+          <label><input type="radio" name="role" value="seller" /><span>🏷️<br>Seller</span></label>
+          <label><input type="radio" name="role" value="business" /><span>🏢<br>Business</span></label>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="fname">Full name</label>
+            <input type="text" id="fname" required placeholder="Jane Doe" />
+          </div>
+          <div class="field">
+            <label for="phone">Phone number</label>
+            <input type="tel" id="phone" required placeholder="+233 ..." />
+          </div>
+        </div>
+        <div class="field">
+          <label for="remail">Email address</label>
+          <input type="email" id="remail" required placeholder="you@example.com" />
+        </div>
+        <div id="businessField" class="field" style="display:none;">
+          <label for="bizname">Seller / company name</label>
+          <input type="text" id="bizname" placeholder="e.g. Crestline Estates Ltd." />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="rpassword">Password</label>
+            <input type="password" id="rpassword" required placeholder="••••••••" />
+          </div>
+          <div class="field">
+            <label for="rpassword2">Confirm password</label>
+            <input type="password" id="rpassword2" required placeholder="••••••••" />
+          </div>
+        </div>
+        <label style="display:flex; align-items:flex-start; gap:9px; font-size:12px; color:var(--ink-dim); margin-bottom:22px;">
+          <input type="checkbox" required style="accent-color:var(--gold); margin-top:3px;" />
+          I agree to the EPREEM Terms of Service and Privacy Policy.
+        </label>
+        <button type="submit" class="btn btn-gold btn-block">Create Account</button>
+      </form>
+
+      <p class="auth-foot">Already have an account? <a href="login.html">Sign in</a></p>
+    </div>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/password-visibility.js?v=1"></script>
+<script src="js/app.js"></script>
+<script>
+  document.querySelectorAll('input[name=role]').forEach(input => {
+    input.name = 'reason';
+    if(input.value === 'business') input.value = 'both';
+  });
+  document.querySelectorAll('.role-pick span').forEach((span, index) => {
+    span.textContent = ['Buyer', 'Seller', 'Both'][index] || span.textContent;
+  });
+
+  document.querySelectorAll('input[name=reason]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.getElementById('businessField').style.display = document.querySelector('input[name=reason]:checked').value === 'buyer' ? 'none' : 'block';
+    });
+  });
+
+  const requestedRole = new URLSearchParams(location.search).get('role');
+  if(['buyer', 'seller'].includes(requestedRole)){
+    const option = document.querySelector(`input[name=reason][value="${requestedRole}"]`);
+    if(option){ option.checked = true; option.dispatchEvent(new Event('change')); }
+  }
+
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const reason = document.querySelector('input[name=reason]:checked').value;
+    const password = document.getElementById('rpassword').value;
+    const password2 = document.getElementById('rpassword2').value;
+
+    if(password !== password2){ toast('Passwords do not match'); return; }
+
+    const payload = {
+      name: document.getElementById('fname').value,
+      phone: document.getElementById('phone').value,
+      email: document.getElementById('remail').value,
+      password,
+      reason_for_joining: reason,
+      company_name: reason === 'buyer' ? undefined : document.getElementById('bizname').value,
+    };
+
+    try{
+      const { user, message } = await EpreemAPI.auth.register(payload);
+      if(message){
+        toast(message);
+        setTimeout(() => location.href = (user.role === 'seller' && user.verification_status === 'verified') ? 'seller-dashboard.html' : 'profile.html', 700);
+        return;
+      }
+      toast('Account created — welcome to EPREEM');
+      setTimeout(() => location.href = (user.role === 'seller' && user.verification_status === 'verified') ? 'seller-dashboard.html' : 'profile.html', 700);
+    }catch(err){
+      const firstError = err.errors ? Object.values(err.errors)[0][0] : err.message;
+      toast(firstError || 'Could not create account');
+    }
+  });
+</script>
+</body>
+</html>

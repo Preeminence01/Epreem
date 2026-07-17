@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0E0D0B" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Notifications — EPREEM</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main>
+  <div class="wrap" style="padding:34px 0 90px; max-width:760px;">
+    <div class="dash-head">
+      <div><span class="eyebrow">Stay in the loop</span><h1 style="font-size:28px; margin-top:8px;">Notifications</h1></div>
+      <button class="btn btn-line btn-sm" id="markAllBtn">Mark all as read</button>
+    </div>
+
+    <div class="panel" id="notifList"></div>
+    <div class="empty-state" id="notifEmpty" style="display:none;">
+      <div style="font-size:38px;">🔔</div>
+      <h3>You're all caught up</h3>
+      <p>Order updates, messages, auction alerts and promotions will show up here.</p>
+    </div>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script>
+const typeIcon = { order: '📦', message: '✉', auction: '🔔', promotion: '🏷️', account: '👤' };
+const typeLink = { order: 'profile.html', message: 'messages.html', auction: 'auctions.html', promotion: 'browse.html', account: 'profile.html' };
+
+async function loadNotifications(){
+  if(!Auth.isLoggedIn()){
+    document.getElementById('notifList').innerHTML = '';
+    document.getElementById('notifEmpty').style.display = 'block';
+    document.getElementById('notifEmpty').innerHTML = `<div style="font-size:38px;">🔔</div><h3>Sign in to see your notifications</h3><a href="login.html" class="btn btn-gold" style="margin-top:14px;">Sign In</a>`;
+    return;
+  }
+
+  let notifs = [];
+  try{ notifs = await EpreemAPI.notifications.list(); }
+  catch(err){ toast('Could not load notifications'); return; }
+
+  if(!notifs.length){
+    document.getElementById('notifList').innerHTML = '';
+    document.getElementById('notifEmpty').style.display = 'block';
+    return;
+  }
+  document.getElementById('notifEmpty').style.display = 'none';
+
+  document.getElementById('notifList').innerHTML = notifs.map(n => `
+    <div class="msg-item" style="cursor:pointer; ${n.read_at ? '' : 'background:rgba(200,162,75,.05);'}" data-id="${n.id}" data-link="${n.link || typeLink[n.type] || 'index.html'}">
+      <div class="avatar-sm">${typeIcon[n.type] || '🔔'}</div>
+      <div style="flex:1; min-width:0;">
+        <div class="nm">${n.title}</div>
+        <div class="pv" style="white-space:normal; max-width:none;">${n.body || ''}</div>
+      </div>
+      <span style="font-size:11px; color:var(--ink-faint); white-space:nowrap;">${new Date(n.created_at).toLocaleDateString('en-US', { month:'short', day:'2-digit' })}</span>
+    </div>`).join('');
+
+  document.querySelectorAll('#notifList .msg-item').forEach(el => {
+    el.addEventListener('click', async () => {
+      try{ await EpreemAPI.notifications.markRead(el.dataset.id); }catch(err){}
+      location.href = el.dataset.link;
+    });
+  });
+}
+
+document.getElementById('markAllBtn').addEventListener('click', async () => {
+  try{
+    await EpreemAPI.notifications.markAllRead();
+    toast('All notifications marked as read');
+    loadNotifications();
+  }catch(err){ toast(err.message || 'Could not update notifications'); }
+});
+
+document.addEventListener('DOMContentLoaded', loadNotifications);
+</script>
+</body>
+</html>

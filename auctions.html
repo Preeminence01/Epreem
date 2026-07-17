@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0E0D0B" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Live Auctions — EPREEM</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main>
+  <div class="page-title-band">
+    <div class="wrap">
+      <span class="eyebrow">Bid in real time</span>
+      <h1>Live Auctions</h1>
+      <p>Watch lots, place bids, and get notified the moment you're outbid. All auctions are time-boxed and verified.</p>
+    </div>
+  </div>
+
+  <div class="wrap" style="padding:36px 0 90px;">
+    <div class="results-toolbar">
+      <span id="auctionCount" style="color:var(--ink-dim); font-size:13px;"></span>
+      <select id="auctionSort">
+        <option value="ending">Sort: Ending Soonest</option>
+        <option value="bids">Most Bids</option>
+        <option value="price-desc">Highest Current Bid</option>
+      </select>
+    </div>
+    <div class="grid-cards cols-3" id="auctionGridFull"></div>
+
+    <section class="section">
+      <div class="section-head">
+        <div><span class="eyebrow">How auctions work</span><h2>Bidding at EPREEM</h2></div>
+      </div>
+      <div class="grid-cards cols-3">
+        <div class="card" style="padding:24px;">
+          <span class="card-cat">Step 01</span>
+          <span class="card-title">Watch a lot</span>
+          <p class="card-meta" style="margin-top:8px;">Add any live auction to your watchlist to track bidding activity.</p>
+        </div>
+        <div class="card" style="padding:24px;">
+          <span class="card-cat">Step 02</span>
+          <span class="card-title">Place your bid</span>
+          <p class="card-meta" style="margin-top:8px;">Enter a bid above the current amount before the countdown ends.</p>
+        </div>
+        <div class="card" style="padding:24px;">
+          <span class="card-cat">Step 03</span>
+          <span class="card-title">Win & complete payment</span>
+          <p class="card-meta" style="margin-top:8px;">Winners are notified immediately and complete secure checkout.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const sortMap = { ending: 'ending', bids: 'bids', 'price-desc': 'price_desc' };
+
+  async function render(){
+    const sort = sortMap[document.getElementById('auctionSort').value] || 'ending';
+    document.getElementById('auctionCount').textContent = 'Loading…';
+    try{
+      const auctions = await EpreemAPI.auctions.list({ sort });
+      const items = auctions.map(a => ({ ...a.product, auction: a }));
+      document.getElementById('auctionCount').textContent = items.length + ' live auction' + (items.length===1?'':'s');
+      EpreemUI.renderCards('auctionGridFull', items);
+    }catch(err){
+      document.getElementById('auctionCount').textContent = 'Could not load auctions';
+      EpreemUI.renderCards('auctionGridFull', []);
+    }
+  }
+  document.getElementById('auctionSort').addEventListener('change', render);
+  render();
+});
+</script>
+</body>
+</html>
